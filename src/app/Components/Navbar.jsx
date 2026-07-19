@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import Image from "next/image";
 import { authClient } from "../lib/auth-client";
+import Logo from "./Logo";
 
 export default function Navbar() {
   const router = useRouter();
@@ -133,14 +134,15 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
           {/* LOGO */}
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Logo/>
+          {/* <Link href="/" className="flex items-center gap-2.5 group">
             <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-600 text-white shadow-md shadow-pink-500/20 transition-transform duration-300 group-hover:scale-105">
               <FaTicketAlt className="text-lg rotate-[-12deg] group-hover:rotate-0 transition-transform duration-300" />
             </div>
             <span className="font-bold text-lg bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
               TicketHub<span className="text-pink-500 font-extrabold">.</span>
             </span>
-          </Link>
+          </Link> */}
 
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-full border border-slate-200/30 dark:border-white/5">
