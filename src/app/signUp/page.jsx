@@ -61,7 +61,7 @@ export default function SignUpPage() {
       if (error) {
         setAuthError(error.message || "Failed to create account. Please try again.");
       } else {
-        router.push(`/dashboard/${data.role}`);
+        router.push(`/signIn/${data.role}`);
         router.refresh();
       }
     } catch (err) {

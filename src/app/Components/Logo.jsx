@@ -9,7 +9,7 @@ const Logo = () => {
             <div>
                  {/* <RiTicket2Fill className="text-xl" /> */}
     <Image
-        src="/TicketHub.png"
+        src="/TicketHub1.png"
         alt="TicketHub Logo"
         width={90}
         height={60}
@@ -17,7 +17,7 @@ const Logo = () => {
       />
             
             </div>
-            <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-pink-500 bg-clip-text text-transparent">
+            <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-gray-500 via-slate-600 to-pink-500 bg-clip-text text-transparent">
                TicketHub
             </span>
         </Link>

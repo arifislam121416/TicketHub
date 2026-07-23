@@ -1,7 +1,14 @@
+"use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FaTicketAlt, FaFacebook, FaTwitter, FaInstagram, FaGithub } from "react-icons/fa";
 
 export default function Footer() {
+   const pathName = usePathname();
+    if(pathName.includes("/dashboard")){
+      return null;
+  
+    }
   return (
     <footer className="border-t border-white/5 bg-slate-950/90 pt-16 pb-12 mt-auto">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
