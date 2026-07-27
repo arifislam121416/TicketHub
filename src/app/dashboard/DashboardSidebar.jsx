@@ -39,39 +39,73 @@ const DashboardSidebar = () => {
     });
   };
 
-  const menuItems = [
-    {
-      title: "Dashboard",
-      icon: LayoutCellsLarge,
-      href: "/dashboard",
-    },
+  const menuItems = {
+    user: [
+      {
+        title: "Overview",
+        href: "/dashboard/user"
+      },
+     
+      {
+        title: "Orders",
+        href: "/dashboard/user/orders"
+      },
+{
+        title: "Analytics",
+        href: "/dashboard/user/analytics"
+      }
+
+    ],
+    vendor: [
+      {
+        title: "Overview",
+        href: "/dashboard/vendor"
+      },
+      {
+        title: "Products",
+        href: "/dashboard/vendor/products"
+      },
+      {
+        title: "Orders",
+        href: "/dashboard/vendor/orders"
+      },
+      {
+        title: "Analytics",
+        href: "/dashboard/vendor/analytics"
+      }
+    ],
+    admin:[
+      {
+        title: "Overview",
+        href: "/dashboard/admin"
+      },
     {
       title: "Users",
-      icon: Persons,
-      href: "/dashboard/users",
-      badge: "12",
+      href: "/dashboard/admin/users"
     },
     {
-      title: "Products",
-      icon: ShoppingBag,
-      href: "/dashboard/products",
+      title: "Orders",
+      href: "/dashboard/admin/orders"
     },
     {
       title: "Analytics",
-      icon: ChartColumn,
-      href: "/dashboard/analytics",
+      href: "/dashboard/admin/analytics"
     },
     {
       title: "Settings",
-      icon: Gear,
-      href: "/dashboard/settings",
+      href: "/dashboard/admin/settings"
     },
-  ];
-
+    {
+      title: "Support",
+      href: "/dashboard/admin/support"
+    },
+    ]
+  }
+const menu = menuItems[session?.user?.role] || [];
   return (
     <aside
       className={`relative min-h-screen bg-slate-900 border-r border-slate-800 text-slate-300 transition-all duration-300 flex flex-col justify-between ${
-        isCollapsed ? "w-20" : "w-64"
+        isCollapsed ? "w-20" : "w-42"
       }`}
     >
       {/* Toggle */}
@@ -105,53 +139,23 @@ const DashboardSidebar = () => {
         </div>
 
         {/* Menu */}
-        <nav className="space-y-2 p-4">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
+       {menu.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex items-center gap-3 rounded-xl px-3 py-3 transition-all ${
+              pathname === item.href
+                ? "bg-indigo-600 text-white"
+                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <LayoutCellsLarge width={20} />
 
-            const content = (
-              <Link
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 transition-all ${
-                  active
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                }`}
-              >
-                <Icon width={20} />
-
-                {!isCollapsed && (
-                  <>
-                    <span className="flex-1">
-                      {item.title}
-                    </span>
-
-                    {item.badge && (
-                      <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </Link>
-            );
-
-            return isCollapsed ? (
-              <Tooltip
-                key={item.title}
-                content={item.title}
-                placement="right"
-              >
-                <div>{content}</div>
-              </Tooltip>
-            ) : (
-              <React.Fragment key={item.title}>
-                {content}
-              </React.Fragment>
-            );
-          })}
-        </nav>
+            {!isCollapsed && (
+              <span className="flex-1">{item.title}</span>
+            )}
+          </Link>
+        ))}
       </div>
 
       {/* Bottom */}
@@ -190,10 +194,9 @@ const DashboardSidebar = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar
-                src={session.user.image || ""}
+                src={session.user.image}
                 name={session.user.name}
                 size="sm"
-                isBordered
                 color="primary"
               />
 

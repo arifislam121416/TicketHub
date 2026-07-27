@@ -41,6 +41,7 @@ export default function DashboardNavbar() {
 
           <div className="hidden lg:block w-80">
             <Input
+            className="bg-slate-800 px-2 rounded-2xl text-slate-300 placeholder:text-slate-500 border-slate-600"
               placeholder="Search..."
               variant="bordered"
             />
@@ -58,6 +59,8 @@ export default function DashboardNavbar() {
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
+              width={40}
+              height={40}
                 name={session?.user?.name || "User"}
                 src={session?.user?.image || "" }
                 className="cursor-pointer"
@@ -65,15 +68,9 @@ export default function DashboardNavbar() {
             </DropdownTrigger>
 
             <DropdownMenu aria-label="User Menu">
-              <DropdownItem key="profile">
-                Profile
-              </DropdownItem>
-
-              <DropdownItem key="settings">
-                Settings
-              </DropdownItem>
-
+             
               <DropdownItem
+              className="flex items-center bg-white p-2 rounded-3xl font-semibold gap-2"
                 key="logout"
                 color="danger"
                 onClick={handleLogout}

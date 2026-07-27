@@ -35,7 +35,7 @@ export default function LoginPage() {
 const { data: session, isPending } = authClient.useSession();
 
 useEffect(() => {
-  if (!isPending && session?.user?.role) {
+  if (  session?.user?.role) {
     router.replace(`/dashboard/${session.user.role}`);
   }
 }, [session, isPending, router]);
@@ -76,7 +76,7 @@ useEffect(() => {
     try {
      await authClient.signIn.social({
   provider: "google",
-  callbackURL: "/dashboard",
+ callbackURL: `/dashboard/${session?.user?.role ?? "user"}`,
 });
     } catch (err) {
       console.log(err);

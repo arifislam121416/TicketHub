@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import {  usePathname, useRouter } from "next/navigation";
 import { 
   Card, 
   CardHeader, 
@@ -27,6 +27,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const pathname = usePathname();
 
 
   const {
@@ -61,7 +62,7 @@ export default function SignUpPage() {
       if (error) {
         setAuthError(error.message || "Failed to create account. Please try again.");
       } else {
-        router.push(`/signIn/${data.role}`);
+        router.push("/signIn");
         router.refresh();
       }
     } catch (err) {
@@ -77,7 +78,7 @@ export default function SignUpPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard/user"
+        callbackURL: "/signIn",
       });
     } catch (err) {
       console.error("Google authentication failed", err);
@@ -159,11 +160,12 @@ export default function SignUpPage() {
               <label htmlFor="image" className="text-xs font-semibold text-slate-300">
                 Profile Image URL
               </label>
-              <Input
+              <input
                 {...register("image", { required: "Image URL is required" })}
                 id="image"
-                type="url"
-                placeholder="https://example.com/avatar.jpg"
+                name="image"
+                type="file"
+                placeholder="Upload your profile image"
                 variant="primary"
                 className="w-full"
                 startContent={<FaImage className="text-slate-500 text-xs mr-1 shrink-0" />}

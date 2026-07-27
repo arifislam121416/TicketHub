@@ -36,14 +36,14 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: "string",
-        defaultValue: "User",
+        defaultValue: "user",
       },
       isBlocked: {
         type: "boolean",
         defaultValue: false,
       },
       plan:{
-        defaultValue:"Free"
+        defaultValue:"free"
       }
     },
   },
