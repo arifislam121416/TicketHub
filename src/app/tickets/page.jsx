@@ -17,11 +17,18 @@ const TicketsApiFetch = async () => {
   try {
     setLoading(true);
 
+    console.time("Tickets API");
+
     const ticketsFetcher = await TicketsApi();
 
+    console.timeEnd("Tickets API");
+
+    console.log("Tickets:", ticketsFetcher);
+
     setTickets(ticketsFetcher);
-    setFilteredTickets(ticketsFetcher); // এটা যোগ করো
+    setFilteredTickets(ticketsFetcher);
     setError("");
+
   } catch (err) {
     console.error(err);
     setError("Failed to load tickets.");
@@ -32,11 +39,9 @@ const TicketsApiFetch = async () => {
  
 
 
-  useEffect(() => {
-   
-   TicketsApiFetch()
-  }, []);
-
+ useEffect(() => {
+  TicketsApiFetch();
+}, []);
 
   if (loading) {
     return (

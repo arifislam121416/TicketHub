@@ -6,13 +6,27 @@ import WhyChoose from "./Components/WhyChose";
 
 
 
-export default function Home() {
+export default async function  Home ({searchParams}) {
+  const { canceled } = await searchParams
+
+  if (canceled) {
+    console.log(
+      'Order canceled -- continue to shop around and checkout when you'
+    )
+  }
   return (
    <>
    <Hero/>
   <BrowserTickets/>
    <WhyChoose/>
     <Testimonials/>
+     <form action="/api/checkout_sessions" method="POST">
+      <section>
+       <button type="submit" role="link">
+        Checkout
+      </button>
+     </section>
+    </form>
    </>
   );
 }

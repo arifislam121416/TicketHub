@@ -88,14 +88,14 @@ useEffect(() => {
     <div className="min-h-screen flex items-center justify-center px-5 bg-gradient-to-br from-slate-950 via-slate-900 to-black">
 
       {/* Glow */}
-      <div className="absolute w-96 h-96 bg-pink-500/20 blur-3xl rounded-full top-20 left-20" />
-      <div className="absolute w-96 h-96 bg-indigo-500/20 blur-3xl rounded-full bottom-20 right-20" />
+      <div className="absolute w-96 h-96 bg-pink-500/10 blur-3xl rounded-full top-20 left-20" />
+      <div className="absolute w-96 h-96 bg-indigo-500/10 blur-3xl rounded-full bottom-20 right-20" />
 
       <Card className="relative w-full max-w-md border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl p-6">
 
         <CardHeader className="flex flex-col items-center gap-4 pb-8">
 
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-pink-500 to-indigo-600 shadow-lg shadow-pink-500/30">
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-pink-700 to-indigo-300 shadow-lg shadow-pink-500/30">
             <Logo/>
           </div>
 
@@ -122,13 +122,14 @@ useEffect(() => {
 
               <Input
                 label="Email Address"
+                className="p-2 w-full rounded bg-amber-50"
                 labelPlacement="outside"
                 type="email"
                 placeholder="you@example.com"
                 startContent={<FaEnvelope className="text-pink-400" />}
                 classNames={{
                   inputWrapper:
-                    "bg-slate-900/60 border border-white/10 hover:border-pink-500",
+                    "bg-slate-900/60 p-2 border border-white/10 hover:border-pink-500",
                 }}
                 {...register("email", {
                   required: "Email is required",
@@ -152,11 +153,12 @@ useEffect(() => {
             <div className="w-full">
 
               <Input
+              className="p-2 w-full rounded bg-amber-50"
                 label="Password"
                 labelPlacement="outside"
                 placeholder="********"
                 type={showPassword ? "text" : "password"}
-                startContent={<FaLock className="text-pink-400" />}
+                startContent={<FaLock className=" text-pink-400" />}
                 endContent={
                   <button
                     type="button"
@@ -167,7 +169,7 @@ useEffect(() => {
                 }
                 classNames={{
                   inputWrapper:
-                    "bg-slate-900/60 border border-white/10 hover:border-pink-500",
+                    "bg-slate-900/60 border  border-white/10 hover:border-pink-500",
                 }}
                 {...register("password", {
                   required: "Password is required",
@@ -198,7 +200,7 @@ useEffect(() => {
             <Button
   isLoading={isSubmitting}
   type="submit"
-  className="w-full h-12 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white"
+  className="w-full h-12 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white font-bold text-2xl"
 >
   Sign In
 </Button>

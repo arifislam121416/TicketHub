@@ -12,7 +12,8 @@ import {
   Button, 
   Select, 
   Label,
-  ListBox
+  ListBox,
+  Form
 } from "@heroui/react";
 import { 
   FaUser, 
@@ -22,6 +23,8 @@ import {
   FaGoogle 
 } from "react-icons/fa";
 import { authClient } from "../lib/auth-client";
+import { uploadImage } from "../lib/imageBBUploader";
+
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -72,7 +75,31 @@ export default function SignUpPage() {
       setLoading(false);
     }
   };
+const handleUpload = async (e) => {
+  const file = e.target.files?.[0];
 
+  if (!file) return;
+
+  try {
+    setUploadingImage(true);
+    setAuthError("");
+
+    const result = await uploadImage(file);
+
+    if (result.success) {
+      setValue("image", result.imageUrl, {
+        shouldValidate: true,
+      });
+    } else {
+      setAuthError(result.message || "Image upload failed.");
+    }
+  } catch (error) {
+    console.error(error);
+    setAuthError("Failed to upload image.");
+  } finally {
+    setUploadingImage(false);
+  }
+};
   // Google Social Sign In handler
   const handleGoogleSignIn = async () => {
     try {
@@ -120,8 +147,8 @@ export default function SignUpPage() {
                 id="name"
                 placeholder="John Doe"
                 variant="primary"
-                className="w-full"
-                startContent={<FaUser className="text-slate-500 text-xs mr-1 shrink-0" />}
+                className="w-full p-2  rounded"
+                startContent={<FaUser className="text-slate-500 p-2 text-xs mr-1 shrink-0" />}
                 isInvalid={!!errors.name}
               />
               {errors.name && (
@@ -146,7 +173,7 @@ export default function SignUpPage() {
                 type="email"
                 placeholder="john@example.com"
                 variant="primary"
-                className="w-full"
+                className="w-full p-2 rounded"
                 startContent={<FaEnvelope className="text-slate-500 text-xs mr-1 shrink-0" />}
                 isInvalid={!!errors.email}
               />
@@ -156,25 +183,30 @@ export default function SignUpPage() {
             </div>
 
             {/* PROFILE IMAGE URL FIELD */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="image" className="text-xs font-semibold text-slate-300">
-                Profile Image URL
-              </label>
-              <input
-                {...register("image", { required: "Image URL is required" })}
-                id="image"
-                name="image"
-                type="file"
-                placeholder="Upload your profile image"
-                variant="primary"
-                className="w-full"
-                startContent={<FaImage className="text-slate-500 text-xs mr-1 shrink-0" />}
-                isInvalid={!!errors.image}
-              />
-              {errors.image && (
-                <span className="text-xs text-red-400 pl-1">{errors.image.message}</span>
-              )}
-            </div>
+         <form>
+  <div className="flex flex-col gap-1.5">
+    <label
+      htmlFor="image"
+      className="text-xs font-semibold text-slate-300"
+    >
+      Profile Image
+    </label>
+
+    <input
+      id="image"
+      type="file"
+      accept="image/*"
+      className="w-full rounded border border-slate-700 bg-slate-900 p-2 text-white"
+      onChange={handleUpload}
+    />
+
+    {errors.image && (
+      <span className="text-xs text-red-400">
+        {errors.image.message}
+      </span>
+    )}
+  </div>
+</form>
 
             {/* PASSWORD FIELD */}
             <div className="flex flex-col gap-1.5">
@@ -193,7 +225,7 @@ export default function SignUpPage() {
                 type="password"
                 placeholder="••••••"
                 variant="primary"
-                className="w-full"
+                className="w-full p-2 rounded"
                 startContent={<FaLock className="text-slate-500 text-xs mr-1 shrink-0" />}
                 isInvalid={!!errors.password}
               />

@@ -124,7 +124,7 @@ export default function Navbar() {
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Browse Ticket", href: "/tickets" },
-    { label: "Payment", href: "/payment" },
+    { label: "Pricing", href: "/pricing" },
   ];
 
   return (

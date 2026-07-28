@@ -1,10 +1,8 @@
-import toast from "react-hot-toast";
-
-const uploadImage = async (imageFile) => {
+export const uploadImage = async (file) => {
   const formData = new FormData();
-  formData.append("image", imageFile);
+  formData.append("image", file);
 
-  const response = await fetch(
+  const res = await fetch(
     `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
     {
       method: "POST",
@@ -12,14 +10,17 @@ const uploadImage = async (imageFile) => {
     }
   );
 
-  const result = await response.json();
+  const data = await res.json();
 
-  if (!result.success) {
-    toast.error("Image upload failed");
-    throw new Error(result.error?.message || "Image upload failed");
+  if (!data.success) {
+    return {
+      success: false,
+      message: data.error?.message,
+    };
   }
 
-  return result.data.url;
+  return {
+    success: true,
+    imageUrl: data.data.display_url,
+  };
 };
-
-export default uploadImage;
