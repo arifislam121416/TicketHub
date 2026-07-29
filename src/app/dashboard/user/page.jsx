@@ -1,11 +1,24 @@
-import React from 'react';
 
-const UserDashboardPage = () => {
-    return (
-        <div>
-            <h1 className="text-2xl font-bold mb-4">User Dashboard</h1>
-        </div>
-    );
-};
+export default function UserDashboardPage() {
+  return (
+    <div className="space-y-8">
 
-export default UserDashboardPage;
+      <div>
+        <h1 className="text-3xl font-bold">
+          User Dashboard
+        </h1>
+
+        <p className="text-default-500 mt-2">
+          Manage your bookings, payments and profile.
+        </p>
+      </div>
+
+      {/* <DashboardStats />
+
+      <BookingGrid />
+
+      <TransactionTable /> */}
+
+    </div>
+  );
+}

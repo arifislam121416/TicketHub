@@ -192,7 +192,8 @@ const PricingPage = () => {
     </div>
 
 
-    <Button
+    <form method="POST" action={'/api/checkout_sessions'}>
+      <Button type="submit"
       color={ticket.popular ? "primary" : "default"}
       className={`w-full mt-7 rounded-2xl h-12 font-semibold
       ${
@@ -203,6 +204,7 @@ const PricingPage = () => {
     >
       Book Now
     </Button>
+    </form>
 
 
   </div>

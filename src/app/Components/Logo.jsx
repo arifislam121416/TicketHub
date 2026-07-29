@@ -11,8 +11,8 @@ const Logo = () => {
     <Image
         src="/TicketHub1.png"
         alt="TicketHub Logo"
-        width={90}
-        height={60}
+        width={80}
+        height={50}
         className="w-50% rounded-full"
       />
             

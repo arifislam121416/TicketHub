@@ -1,20 +1,23 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Button, Chip, Card, CardBody, Divider } from "@heroui/react";
-import { TicketsApi } from "@/app/data";
+import { Button, Chip, Card } from "@heroui/react";
+import { TicketsApiDetails } from "@/app/data";
+
 
 const TicketDetailsPage = async ({ params }) => {
-   const { id } = params;
+   const { id } = await params;
+
+   console.log(id,"id params ashse");
 
   let ticket;
 
   try {
-    ticket = await TicketsApi(id);
+    ticket = await TicketsApiDetails(id);
   } catch (error) {
     console.error("Ticket fetch failed:", error);
     notFound();
   }
-
+console.log(ticket,"ticket ashse");
   if (!ticket) {
     notFound();
   }
@@ -44,7 +47,6 @@ const TicketDetailsPage = async ({ params }) => {
           </div>
         </div>
 
-        {/* Right Column: Ticket Information */}
         <div className="lg:col-span-7 space-y-8">
           
           {/* Header Info */}
@@ -54,7 +56,7 @@ const TicketDetailsPage = async ({ params }) => {
                 color="success"
                 variant="flat"
                 size="sm"
-                className="font-medium capitalize"
+                className="w-20 text-center p-2 font-bold text-white rounded-2xl bg-green-400 capitalize"
               >
                 {ticket.transportType || "Standard"}
               </Chip>
@@ -74,11 +76,11 @@ const TicketDetailsPage = async ({ params }) => {
             </p>
           </div>
 
-          <Divider />
+        
 
           {/* Key Route & Departure Details */}
-          <Card shadow="none" className="border border-default-200 dark:border-default-100 bg-default-50/50">
-            <CardBody className="p-5">
+          <Card shadow="none" className="border p-2 rounded-2xl border-default-200 dark:border-default-100 bg-default-50/50">
+           
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
                 
                 <div className="space-y-1">
@@ -118,7 +120,7 @@ const TicketDetailsPage = async ({ params }) => {
                 </div>
 
               </div>
-            </CardBody>
+            
           </Card>
 
           {/* Perks Section */}
@@ -128,7 +130,7 @@ const TicketDetailsPage = async ({ params }) => {
                 Included Perks
               </h2>
 
-              <ul className="grid sm:grid-cols-2 gap-2.5">
+              <ul className="grid sm:grid-cols-2 w-30 p-2 font-bold text-white rounded-2xl bg-green-400 gap-2.5">
                 {ticket.perks.map((perk, index) => (
                   <li
                     key={index}
@@ -150,7 +152,7 @@ const TicketDetailsPage = async ({ params }) => {
             </div>
           )}
 
-          <Divider />
+         
 
           {/* Pricing & CTA Section */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
@@ -167,10 +169,11 @@ const TicketDetailsPage = async ({ params }) => {
             </div>
 
             <Button
+            
               size="lg"
               color="primary"
               isDisabled={ticket.ticketQuantity === 0}
-              className="h-12 px-8 font-semibold text-white shadow-lg shadow-primary/25 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 hover:opacity-95 transition-all"
+              className="h-12 w-70 px-8 p-2 rounded-2xl font-semibold text-white shadow-lg shadow-primary/25 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 hover:opacity-95 transition-all"
             >
               {ticket.ticketQuantity === 0 ? "Sold Out" : "Book Now"}
             </Button>

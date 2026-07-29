@@ -52,12 +52,16 @@ const DashboardSidebar = () => {
       },
      
       {
-        title: "Orders",
-        href: "/dashboard/user/orders"
+        title: "Bookings",
+        href: "/dashboard/user/bookings"
       },
 {
-        title: "Analytics",
-        href: "/dashboard/user/analytics"
+        title: "profile",
+        href: "/dashboard/user/profile"
+      },
+{
+        title: "Transaction",
+        href: "/dashboard/user/transaction"
       }
 
     ],

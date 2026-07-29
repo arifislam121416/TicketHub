@@ -20,7 +20,7 @@ console.log(session);
  if(
   request.nextUrl.pathname.startsWith("/dashboard/vendor")
   &&
-  session.user.plan !== "free"
+  session.user.plan === "free"
  ){
    return NextResponse.redirect(
     new URL("/pricing",request.url)

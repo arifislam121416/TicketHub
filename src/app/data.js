@@ -24,3 +24,27 @@ export const TicketsApi = async (token) => {
 
   return data.tickets ?? data;
 };                                                                                                                                                                                                                              
+export const TicketsApiDetails = async (id, token) => {
+  const url = `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`;
+
+  console.log("Fetching:", url);
+
+  const res = await fetch(url, {
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {},
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch ticket");
+  }
+
+  const data = await res.json();
+
+  console.log("API Data:", data);
+
+  return data;
+};                                                                                                                                                                                                                                                                                                                                                                                                 
