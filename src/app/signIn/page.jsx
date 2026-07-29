@@ -216,7 +216,7 @@ useEffect(() => {
          <Button
   onPress={handleGoogleLogin}
   variant="bordered"
-  className="w-full h-12"
+  className="w-full bg-amber-100 p-2 rounded-2xl h-12"
   startContent={<FaGoogle />}
 >
   Continue with Google
