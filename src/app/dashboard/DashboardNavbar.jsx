@@ -41,7 +41,7 @@ export default function DashboardNavbar() {
 
           <div className="hidden lg:block w-80">
             <Input
-            className="bg-slate-800 px-2 rounded-2xl text-slate-300 placeholder:text-slate-500 border-slate-600"
+              className="bg-slate-800 px-2 rounded-2xl text-slate-300 placeholder:text-slate-500 border-slate-600"
               placeholder="Search..."
               variant="bordered"
             />
@@ -59,21 +59,20 @@ export default function DashboardNavbar() {
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
-              width={40}
-              height={40}
                 name={session?.user?.name || "User"}
-                src={session?.user?.image || "" }
-                className="cursor-pointer"
+                /* FIXED: খালি স্ট্রিং "" না দিয়ে undefined বা null পাস করা হয়েছে */
+                src={session?.user?.image || undefined} 
+                className="cursor-pointer w-10 h-10"
               />
             </DropdownTrigger>
 
-            <DropdownMenu aria-label="User Menu">
-             
+            <DropdownMenu aria-label="User Menu" onAction={(key) => {
+              if (key === "logout") handleLogout();
+            }}>
               <DropdownItem
-              className="flex items-center bg-white p-2 rounded-3xl font-semibold gap-2"
                 key="logout"
                 color="danger"
-                onClick={handleLogout}
+                className="flex items-center bg-white p-2 rounded-3xl font-semibold gap-2 text-danger"
               >
                 Logout
               </DropdownItem>

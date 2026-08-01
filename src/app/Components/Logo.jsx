@@ -13,8 +13,10 @@ const Logo = () => {
         alt="TicketHub Logo"
         width={80}
         height={50}
+        
         className="w-50% rounded-full"
       />
+
             
             </div>
             <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-gray-500 via-slate-600 to-pink-500 bg-clip-text text-transparent">

@@ -3,40 +3,36 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
-import {  usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
-  Card, 
-  CardHeader, 
-  CardBody, 
+  Card,  
   Input, 
   Button, 
   Select, 
   Label,
-  ListBox,
-  Form
+  ListBox
 } from "@heroui/react";
 import { 
   FaUser, 
   FaEnvelope, 
   FaLock, 
-  FaImage, 
   FaGoogle 
 } from "react-icons/fa";
 import { authClient } from "../lib/auth-client";
 import { uploadImage } from "../lib/imageBBUploader";
 
-
 export default function SignUpPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false); // FIXED: Added missing state
   const [authError, setAuthError] = useState("");
   const pathname = usePathname();
-
 
   const {
     register,
     handleSubmit,
     control,
+    setValue, // FIXED: Destructured setValue from useForm
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -59,7 +55,7 @@ export default function SignUpPage() {
         name: data.name,
         image: data.image, 
         role: data.role,
-        plan:"Free",
+        plan: "Free",
       });
 
       if (error) {
@@ -75,31 +71,33 @@ export default function SignUpPage() {
       setLoading(false);
     }
   };
-const handleUpload = async (e) => {
-  const file = e.target.files?.[0];
 
-  if (!file) return;
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
 
-  try {
-    setUploadingImage(true);
-    setAuthError("");
+    if (!file) return;
 
-    const result = await uploadImage(file);
+    try {
+      setUploadingImage(true);
+      setAuthError("");
 
-    if (result.success) {
-      setValue("image", result.imageUrl, {
-        shouldValidate: true,
-      });
-    } else {
-      setAuthError(result.message || "Image upload failed.");
+      const result = await uploadImage(file);
+
+      if (result.success) {
+        setValue("image", result.imageUrl, {
+          shouldValidate: true,
+        });
+      } else {
+        setAuthError(result.message || "Image upload failed.");
+      }
+    } catch (error) {
+      console.error(error);
+      setAuthError("Failed to upload image.");
+    } finally {
+      setUploadingImage(false);
     }
-  } catch (error) {
-    console.error(error);
-    setAuthError("Failed to upload image.");
-  } finally {
-    setUploadingImage(false);
-  }
-};
+  };
+
   // Google Social Sign In handler
   const handleGoogleSignIn = async () => {
     try {
@@ -115,7 +113,6 @@ const handleUpload = async (e) => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-950 text-white">
       <Card className="w-full max-w-lg border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-2xl p-6">
-        <CardHeader className="flex flex-col gap-1 items-center pb-6 text-center">
           <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-indigo-600 text-white shadow-lg shadow-pink-500/20 mb-3">
             <FaUser className="text-xl" />
           </div>
@@ -125,9 +122,9 @@ const handleUpload = async (e) => {
           <p className="text-slate-400 text-xs">
             Join Tricket to book premium, curated events globally.
           </p>
-        </CardHeader>
+       
 
-        <Card className="p-0">
+       
           {/* Auth System Error Display */}
           {authError && (
             <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-medium">
@@ -147,7 +144,7 @@ const handleUpload = async (e) => {
                 id="name"
                 placeholder="John Doe"
                 variant="primary"
-                className="w-full p-2  rounded"
+                className="w-full p-2 rounded"
                 startContent={<FaUser className="text-slate-500 p-2 text-xs mr-1 shrink-0" />}
                 isInvalid={!!errors.name}
               />
@@ -182,31 +179,29 @@ const handleUpload = async (e) => {
               )}
             </div>
 
-            {/* PROFILE IMAGE URL FIELD */}
-         <form>
-  <div className="flex flex-col gap-1.5">
-    <label
-      htmlFor="image"
-      className="text-xs font-semibold text-slate-300"
-    >
-      Profile Image
-    </label>
+            {/* PROFILE IMAGE UPLOAD FIELD (FIXED: Nested <form> removed) */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="image" className="text-xs font-semibold text-slate-300">
+                Profile Image
+              </label>
 
-    <input
-      id="image"
-      type="file"
-      accept="image/*"
-      className="w-full rounded border border-slate-700 bg-slate-900 p-2 text-white"
-      onChange={handleUpload}
-    />
+              <input
+                id="image"
+                type="file"
+                accept="image/*"
+                className="w-full rounded border border-slate-700 bg-slate-900 p-2 text-xs text-white"
+                onChange={handleUpload}
+                disabled={uploadingImage}
+              />
+              
+              {uploadingImage && (
+                <span className="text-xs text-indigo-400">Uploading image...</span>
+              )}
 
-    {errors.image && (
-      <span className="text-xs text-red-400">
-        {errors.image.message}
-      </span>
-    )}
-  </div>
-</form>
+              {errors.image && (
+                <span className="text-xs text-red-400">{errors.image.message}</span>
+              )}
+            </div>
 
             {/* PASSWORD FIELD */}
             <div className="flex flex-col gap-1.5">
@@ -223,7 +218,7 @@ const handleUpload = async (e) => {
                 })}
                 id="password"
                 type="password"
-                placeholder="••••••"
+                placeholder="••••••••"
                 variant="primary"
                 className="w-full p-2 rounded"
                 startContent={<FaLock className="text-slate-500 text-xs mr-1 shrink-0" />}
@@ -234,7 +229,7 @@ const handleUpload = async (e) => {
               )}
             </div>
 
-            {/* ROLE SELECT FIELD (HeroUI v3 Select Pattern) */}
+            {/* ROLE SELECT FIELD */}
             <div className="flex flex-col gap-1.5">
               <Controller
                 name="role"
@@ -277,6 +272,7 @@ const handleUpload = async (e) => {
             <Button
               type="submit"
               isLoading={loading}
+              isDisabled={uploadingImage}
               className="w-full h-11 bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 font-semibold text-xs text-white shadow-lg shadow-pink-500/10 hover:shadow-pink-500/25 transition duration-300"
               radius="xl"
             >
@@ -307,11 +303,11 @@ const handleUpload = async (e) => {
           {/* FOOTER METRICS */}
           <p className="text-center text-xs text-slate-400 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-pink-500 font-bold hover:underline transition ml-1">
+            <Link href="/signIn" className="text-pink-500 font-bold hover:underline transition ml-1">
               Login here
             </Link>
           </p>
-        </Card>
+       
       </Card>
     </div>
   );
