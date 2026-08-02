@@ -71,12 +71,16 @@ const DashboardSidebar = () => {
         href: "/dashboard/vendor"
       },
       {
-        title: "Products",
-        href: "/dashboard/vendor/products"
+        title: "Add Ticket",
+        href: "/dashboard/vendor/vendorAddTicket"
       },
       {
-        title: "Orders",
-        href: "/dashboard/vendor/orders"
+        title: "My Ticket",
+        href: "/dashboard/vendor/vendormyticket"
+      },
+      {
+        title: "Update Ticket",
+        href: "/dashboard/vendor/vendorUpdateTicket"
       },
       {
         title: "Analytics",

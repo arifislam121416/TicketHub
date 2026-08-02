@@ -100,12 +100,13 @@ export default function Navbar() {
   const user = session?.user;
   const isLoggedIn = !!session;
   const userRole = user?.role?.toLowerCase() || "user";
-  const pathName = usePathname();
-  if(pathName.includes("/dashboard")){
-    return null;
+  // ✅ সঠিক: Early return অবশ্যই session/theme লজিকের পরে হবে
+const pathName = usePathname();
+const dashboardHref = `/dashboard/${userRole}`;
 
-  }
-  const dashboardHref = `/dashboard/${userRole}`;
+if (pathName.includes("/dashboard")) {
+  return null;
+}
 
   if (isPending) {
     return (

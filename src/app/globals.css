@@ -1,1 +1,13 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+body {
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #0f172a;            /* text-slate-900 */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 🟢 ডার্ক মোড অন হলে পুরো Body-র কালার বদলে যাবে */
+.dark body {
+  background-color: #020617; /* bg-slate-950 */
+  color: #f8fafc;            /* text-slate-50 */
+}
