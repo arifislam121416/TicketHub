@@ -1,6 +1,7 @@
  import { headers } from 'next/headers'
 import { NextResponse } from "next/server";
-import { auth } from "./app/lib/auth";
+import { auth } from './app/lib/auth';
+
 
 
 export async function proxy(request){

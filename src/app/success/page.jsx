@@ -5,34 +5,19 @@ import { auth } from "../lib/auth";
 import { stripe } from "../lib/stripe";
 import { subscription } from "@/actions/payment";
 
-
-
-
-
 export default async function Success({ searchParams }) {
-  const { session_id } = await searchParams;
+  // ১. searchParams থেকে session_id নেওয়া
+  const params = await searchParams;
+  const session_id = params?.session_id;
 
-  // ১. সেশন আইডি না থাকলে হোম পেজে রিডাইরেক্ট
+  // সেশন আইডি না থাকলে হোম পেজে রিডাইরেক্ট
   if (!session_id) {
     redirect("/");
   }
 
-  // ২. ইউজার অথেনটিকেশন চেক
-  const headersList = await headers();
-  const authSession = await auth.api.getSession({
-    headers: headersList,
-  });
-
-  if (!authSession?.user) {
-    redirect(`/signIn?callbackUrl=/success?session_id=${session_id}`);
-  }
-
-  const user = authSession?.user;
-
+  // ২. স্ট্রাইপ থেকে সেশন ডেটা ফেচ করা
   let stripeSession;
-
   try {
-    // ৩. স্ট্রাইপ থেকে সেশন ডেটা ফেচ করা
     stripeSession = await stripe.checkout.sessions.retrieve(session_id, {
       expand: ["line_items", "payment_intent"],
     });
@@ -41,37 +26,58 @@ export default async function Success({ searchParams }) {
     redirect("/tickets");
   }
 
-  // ৪. স্ট্রাইপ সেশনের স্ট্যাটাস ভ্যালিডেশন
+  // ৩. স্ট্রাইপ সেশনের স্ট্যাটাস ভ্যালিডেশন
   if (stripeSession.status === "open") {
     redirect("/");
   }
 
-  if (stripeSession.status !== "complete") {
-await subscription({
-      session_id,
-      user,
-    });
-    redirect("/signIn");
+  // ৪. ইউজার অথেনটিকেশন চেক (সেশন না পেলেও রিডাইরেক্ট করবে না)
+  const headersList = await headers();
+  const authSession = await auth.api.getSession({
+    headers: headersList,
+  });
+
+  // 🔴 এখানে ইউজার অবজেক্ট তৈরি করা হচ্ছে
+  const user = authSession?.user || {
+    email: stripeSession.customer_details?.email,
+    id: stripeSession.customer || null,
+    role: "user", // Fallback role
+  };
+
+  // 🔴 ইউজার তৈরি হওয়ার পর রোল অনুযায়ী ডাইনামিক লিংক তৈরি
+  let bookingPath = "/dashboard/user/bookings"; // Default route
+
+  if (user?.role === "admin") {
+    bookingPath = "/dashboard/admin/bookings";
+  } else if (user?.role === "vendor") {
+    bookingPath = "/dashboard/vendor/bookings";
+  } else {
+    bookingPath = "/dashboard/user/bookings";
   }
 
-  // ৫. ডাটাবেজে পেমেন্ট তথ্য সংরক্ষণ করা (Try-Catch দিয়ে সুরক্ষিত)
-  try {
-    
-  } catch (error) {
-    console.error("Subscription Action Error:", error);
+  // ৫. পেমেন্ট সফল হলে (status === 'complete') ডাটাবেজ আপডেট হবে
+  if (stripeSession.status === "complete") {
+    try {
+      await subscription({
+        session_id,
+        user,
+      });
+    } catch (error) {
+      console.error("Subscription Action Error:", error);
+    }
+  } else {
+    redirect("/");
   }
 
-  // ডাইনামিক ডেটা ফরম্যাটিং
+  // ৬. ডাইনামিক ডেটা ফরম্যাটিং
   const customerEmail =
     stripeSession.customer_details?.email || user.email || "N/A";
 
-  // ইন্টারন্যাশনাল স্টাইল কারেন্সি ফরম্যাট
   const totalPaid = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: stripeSession.currency?.toUpperCase() || "USD",
   }).format((stripeSession.amount_total || 0) / 100);
 
-  // স্থানীয় সময় অনুযায়ী তারিখ ফরম্যাট
   const paymentDate = new Date(
     stripeSession.created * 1000
   ).toLocaleDateString("en-US", {
@@ -148,13 +154,17 @@ await subscription({
           </div>
         </div>
 
-        {/* Buttons */}
+        {/* Dynamic Action Buttons */}
         <div className="grid gap-3 p-6 md:p-8 bg-gray-50 border-t border-gray-100 sm:grid-cols-3">
           <Link
-            href="/dashboard/bookings"
+            href={bookingPath}
             className="w-full flex justify-center items-center rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
           >
-            My Bookings
+            {user?.role === "admin"
+              ? "All Bookings"
+              : user?.role === "vendor"
+              ? "Vendor Bookings"
+              : "My Bookings"}
           </Link>
 
           <Link

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Card, Input, Button } from "@heroui/react";
+import {
+  Card,
+  Input,
+  Button,
+} from "@heroui/react";
 import {
   FaEnvelope,
   FaLock,
@@ -22,10 +26,11 @@ export default function LoginPage() {
   const { data: session, isPending } = authClient.useSession();
   const [showPassword, setShowPassword] = useState(false);
 
-  // Auto redirect if already logged in
+  // Auto redirect if already logged in (Role-based Dynamic Routing)
   useEffect(() => {
-    if (!isPending && session?.user?.role) {
-      router.replace(`/dashboard/${session.user.role}`);
+    if (!isPending && session?.user) {
+      const userRole = session.user.role || "user";
+      router.replace(`/dashboard/${userRole}`);
     }
   }, [session, isPending, router]);
 
@@ -35,31 +40,42 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm();
 
+  // 🎯 Dynamic Email/Password Submit Logic
   const onSubmit = async (data) => {
     try {
-      const { error } = await authClient.signIn.email({
+      const res = await authClient.signIn.email({
         email: data.email,
         password: data.password,
       });
 
-      if (error) {
-        toast.error(error.message || "Invalid credentials");
+      if (res.error) {
+        toast.error(res.error.message || "Invalid credentials");
         return;
       }
 
-      toast.success("Login Successful");
+      toast.success("Login Successful!");
+
+      // Better Auth থেকে প্রাপ্ত সেশন দিয়ে ডাইনামিক রিডাইরেক্ট
+      const updatedSession = await authClient.getSession();
+      const role = updatedSession?.data?.user?.role || "user";
+
+      // Role ভিত্তিক ডাইনামিক রাউটিং: /dashboard/admin, /dashboard/vendor, /dashboard/user
+      router.push(`/dashboard/${role}`);
+
     } catch (err) {
-      toast.error("Something went wrong");
+      console.error(err);
+      toast.error("Something went wrong during sign in");
     }
   };
 
+  // 🎯 Dynamic Google Login Logic
   const handleGoogleLogin = async () => {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: session?.user?.role
-          ? `/dashboard/${session.user.role}`
-          : "/dashboard/user",
+        // Google Callback এর ক্ষেত্রে সাধারণ ড্যাশবোর্ড পেজ দেওয়া হলো, 
+        // ব্যাকএন্ড/কুকি থেকে রোল নিয়ে সেশন রিডাইরেক্ট কার্যকর হবে
+        callbackURL: "/dashboard",
       });
     } catch (err) {
       console.error(err);
@@ -69,11 +85,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-5 bg-gradient-to-br from-slate-950 via-slate-900 to-black relative overflow-hidden">
+      
       {/* Background Glows */}
       <div className="absolute w-96 h-96 bg-pink-500/10 blur-3xl rounded-full top-20 left-20 pointer-events-none" />
       <div className="absolute w-96 h-96 bg-indigo-500/10 blur-3xl rounded-full bottom-20 right-20 pointer-events-none" />
 
       <Card className="relative w-full max-w-md border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl p-6 text-white">
+        
         <div className="p-3 rounded-2xl bg-gradient-to-r from-pink-700 to-indigo-300 shadow-lg shadow-pink-500/30">
           <Logo />
         </div>
@@ -87,16 +105,10 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          
           {/* Email Field */}
           <div className="w-full">
             <Input
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^\S+@\S+\.\S+$/,
-                  message: "Invalid email address",
-                },
-              })}
               label="Email Address"
               labelPlacement="outside"
               type="email"
@@ -104,13 +116,18 @@ export default function LoginPage() {
               startContent={<FaEnvelope className="text-pink-400 shrink-0" />}
               classNames={{
                 inputWrapper:
-                  "bg-slate-900/60 border border-white/10 hover:border-pink-500 focus-within:!border-pink-500 rounded-xl transition",
-                input: "text-sm text-white placeholder:text-slate-500 font-medium",
-                label: "text-slate-300 font-medium text-xs mb-1",
+                  "bg-slate-900/60 p-3 border border-white/10 hover:border-pink-500 rounded-xl",
               }}
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: "Invalid email address",
+                },
+              })}
             />
             {errors.email && (
-              <p className="text-rose-500 text-xs mt-1 pl-1 font-semibold">
+              <p className="text-red-500 text-xs mt-1 pl-1">
                 {errors.email.message}
               </p>
             )}
@@ -119,9 +136,6 @@ export default function LoginPage() {
           {/* Password Field */}
           <div className="w-full">
             <Input
-              {...register("password", {
-                required: "Password is required",
-              })}
               label="Password"
               labelPlacement="outside"
               placeholder="••••••••"
@@ -131,20 +145,19 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="focus:outline-none text-slate-400 hover:text-white transition cursor-pointer"
+                  className="focus:outline-none text-slate-400 hover:text-white"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               }
               classNames={{
                 inputWrapper:
-                  "bg-slate-900/60 border border-white/10 hover:border-pink-500 focus-within:!border-pink-500 rounded-xl transition",
-                input: "text-sm w-full text-white placeholder:text-slate-500 font-medium",
-                label: "text-slate-300 font-medium text-xs mb-1",
+                  "bg-slate-900/60 p-3 border border-white/10 hover:border-pink-500 rounded-xl",
               }}
+              {...register("password", { required: "Password is required" })}
             />
             {errors.password && (
-              <p className="text-rose-500 text-xs mt-1 pl-1 font-semibold">
+              <p className="text-red-500 text-xs mt-1 pl-1">
                 {errors.password.message}
               </p>
             )}
@@ -154,28 +167,26 @@ export default function LoginPage() {
           <div className="flex justify-end w-full">
             <Link
               href="/forgot-password"
-              className="text-xs text-pink-400 hover:underline font-medium"
+              className="text-xs text-pink-400 hover:underline"
             >
               Forgot Password?
             </Link>
           </div>
 
-          {/* Submit Button */}
+          {/* 🎯 Dynamic Submit Button */}
           <Button
             isLoading={isSubmitting}
             type="submit"
-            className="w-full h-11 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-pink-500/20 hover:opacity-95 transition cursor-pointer"
+            className="w-full h-11 rounded-xl bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 text-white font-bold text-lg shadow-lg shadow-pink-500/20 hover:opacity-95 transition"
           >
-            Sign In
+            {isSubmitting ? "Authenticating..." : "Sign In"}
           </Button>
         </form>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 my-5">
+        <div className="flex items-center gap-3 my-4">
           <div className="flex-1 border-t border-white/10" />
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-            OR
-          </span>
+          <span className="text-[10px] text-slate-500 font-bold">OR</span>
           <div className="flex-1 border-t border-white/10" />
         </div>
 
@@ -183,8 +194,8 @@ export default function LoginPage() {
         <Button
           onPress={handleGoogleLogin}
           variant="bordered"
-          className="w-full border-white/10 text-slate-300 hover:bg-white/5 h-11 rounded-xl text-xs font-semibold cursor-pointer"
-          startContent={<FaGoogle className="text-xs text-pink-400" />}
+          className="w-full border-white/10 text-slate-300 hover:bg-white/5 h-11 rounded-xl text-base font-semibold"
+          startContent={<FaGoogle className="text-sm" />}
         >
           Continue with Google
         </Button>

@@ -168,8 +168,12 @@ console.log(ticket,"ticket ashse");
               </div>
             </div>
 
-            <Button
-            
+           <form action={`/api/bookingPayment`} method="POST">
+            <input type="hidden" value={ticket.price} name="price"/>
+            <input type="hidden" value={ticket.title} name="title"/>
+            <input type="hidden" value={ticket.ticketId} name="ticketId"/>
+             <Button
+            type="submit"
               size="lg"
               color="primary"
               isDisabled={ticket.ticketQuantity === 0}
@@ -177,6 +181,7 @@ console.log(ticket,"ticket ashse");
             >
               {ticket.ticketQuantity === 0 ? "Sold Out" : "Book Now"}
             </Button>
+           </form>
           </div>
 
         </div>
