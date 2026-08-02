@@ -24,11 +24,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      {/* 
-        bg-white / dark:bg-slate-950: পেজের ব্যাকগ্রাউন্ড পরিবর্তন করবে
-        text-slate-900 / dark:text-slate-100: পুরো ওয়েবসাইটের লেখার কালার ঠিক রাখবে
-        transition-colors duration-300: থিম পরিবর্তনের সময় স্মুথ ইফেক্ট দিবে
-      */}
+    
       <body className="min-h-full flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
         <Navbar />
         <main className="flex-1">{children}</main>

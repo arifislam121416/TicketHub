@@ -83,8 +83,12 @@ const DashboardSidebar = () => {
         href: "/dashboard/vendor/vendorUpdateTicket"
       },
       {
-        title: "Analytics",
-        href: "/dashboard/vendor/analytics"
+        title: "Requested Bookings",
+        href: "/dashboard/vendor/vendorRequestedBookings"
+      },
+      {
+        title: "Revenue",
+        href: "/dashboard/vendor/revenue"
       }
     ],
     admin:[
@@ -93,12 +97,20 @@ const DashboardSidebar = () => {
         href: "/dashboard/admin"
       },
     {
-      title: "Users",
-      href: "/dashboard/admin/users"
+      title: "Profile",
+      href: "/dashboard/admin/profile"
     },
     {
-      title: "Orders",
-      href: "/dashboard/admin/orders"
+      title: "Manage Tickets",
+      href: "/dashboard/admin/managetickets"
+    },
+    {
+      title: "Manage Users",
+      href: "/dashboard/admin/manageUsers"
+    },
+    {
+      title: "Advertise Tickets",
+      href: "/dashboard/admin/advertiseTickets"
     },
     {
       title: "Analytics",
@@ -251,7 +263,7 @@ const menu = menuItems[role];
             <Button
               color="primary"
               className="w-full"
-              onClick={() => router.push("/login")}
+              onClick={() => router.push("/signIn")}
             >
               Login
             </Button>

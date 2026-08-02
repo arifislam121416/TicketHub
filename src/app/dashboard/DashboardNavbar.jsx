@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "../lib/auth-client";
 
+
 export default function DashboardNavbar() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -60,21 +61,20 @@ export default function DashboardNavbar() {
             <DropdownTrigger>
               <Avatar
                 name={session?.user?.name || "User"}
-                /* FIXED: খালি স্ট্রিং "" না দিয়ে undefined বা null পাস করা হয়েছে */
                 src={session?.user?.image || undefined} 
                 className="cursor-pointer w-10 h-10"
               />
             </DropdownTrigger>
 
             <DropdownMenu aria-label="User Menu" onAction={(key) => {
-              if (key === "logout") handleLogout();
+              if (key === "signOut") onClick={handleLogout};
             }}>
               <DropdownItem
-                key="logout"
+                key="signOut"
                 color="danger"
                 className="flex items-center bg-white p-2 rounded-3xl font-semibold gap-2 text-danger"
               >
-                Logout
+                <button>Sign Out</button>
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
