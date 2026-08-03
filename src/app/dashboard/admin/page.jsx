@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
   FaUserShield, 
@@ -16,13 +16,92 @@ import {
   FaCheckCircle,
   FaClock
 } from "react-icons/fa";
+import { authClient } from "@/app/lib/auth-client";
 
 // ডাইনামিক টেস্ট ডেটা (আপনার API রেসপন্সের সাথে কানেক্ট করবেন)
+
+
+// const RECENT_PLATFORM_ACTIVITIES = [
+//   {
+//     id: "ACT-8801",
+//     action: "New Ticket Approval Request",
+//     target: "Cyber Security Conference 2026",
+//     actor: "Tech Corp (Vendor)",
+//     time: "12 mins ago",
+//     type: "ticket",
+//   },
+//   {
+//     id: "ACT-8802",
+//     action: "Vendor Marked as Fraud",
+//     target: "Fake Event Planners Ltd",
+//     actor: "Admin (Alex)",
+//     time: "1 hour ago",
+//     type: "fraud",
+//   },
+//   {
+//     id: "ACT-8803",
+//     action: "Ticket Advertised on Homepage",
+//     target: "Summer Music Fest 2026",
+//     actor: "Admin (Alex)",
+//     time: "3 hours ago",
+//     type: "advertise",
+//   },
+//   {
+//     id: "ACT-8804",
+//     action: "User Promoted to Vendor",
+//     target: "Farhana Yasmin",
+//     actor: "Admin (Alex)",
+//     time: "5 hours ago",
+//     type: "user",
+//   },
+// ];
+
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [chartData,setChartData]=useState([]);
+
+
+ const { data: session } = authClient.useSession();
+
+const adminName = session?.user?.name;
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const [statsRes, activityRes, chartRes] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/stats`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/activity`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/chart`)
+      ]);
+
+      setStats(await statsRes.json());
+      setActivities(await activityRes.json());
+      setChartData(await chartRes.json());
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  loadData();
+}, []);
+
+
+
+
+if (!stats) {
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>
+  );
+}
+
 const ADMIN_STATS = [
   {
     title: "Total Revenue Generated",
-    value: "$48,920.00",
-    change: "+18.4%",
+    value: `$${stats.revenue}`,
+    change: "",
     isPositive: true,
     icon: FaMoneyBillWave,
     color: "from-emerald-500 to-teal-600",
@@ -30,8 +109,8 @@ const ADMIN_STATS = [
   },
   {
     title: "Total Registered Users",
-    value: "3,420",
-    change: "+12.5%",
+    value: stats.totalUsers,
+    change: "",
     isPositive: true,
     icon: FaUsers,
     color: "from-indigo-500 to-purple-600",
@@ -39,16 +118,16 @@ const ADMIN_STATS = [
   },
   {
     title: "Pending Ticket Approvals",
-    value: "14",
-    change: "+3 new",
+    value: stats.pendingTickets,
+    change: "",
     isPositive: false,
     icon: FaTicketAlt,
     color: "from-amber-500 to-orange-600",
     shadow: "shadow-amber-500/10",
   },
   {
-    title: "Active Advertised Tickets",
-    value: "5 / 6",
+    title: "Advertised Tickets",
+    value: `${stats.advertisedTickets}/6`,
     change: "Max 6",
     isPositive: true,
     icon: FaAd,
@@ -56,45 +135,10 @@ const ADMIN_STATS = [
     shadow: "shadow-pink-500/10",
   },
 ];
-
-const RECENT_PLATFORM_ACTIVITIES = [
-  {
-    id: "ACT-8801",
-    action: "New Ticket Approval Request",
-    target: "Cyber Security Conference 2026",
-    actor: "Tech Corp (Vendor)",
-    time: "12 mins ago",
-    type: "ticket",
-  },
-  {
-    id: "ACT-8802",
-    action: "Vendor Marked as Fraud",
-    target: "Fake Event Planners Ltd",
-    actor: "Admin (Alex)",
-    time: "1 hour ago",
-    type: "fraud",
-  },
-  {
-    id: "ACT-8803",
-    action: "Ticket Advertised on Homepage",
-    target: "Summer Music Fest 2026",
-    actor: "Admin (Alex)",
-    time: "3 hours ago",
-    type: "advertise",
-  },
-  {
-    id: "ACT-8804",
-    action: "User Promoted to Vendor",
-    target: "Farhana Yasmin",
-    actor: "Admin (Alex)",
-    time: "5 hours ago",
-    type: "user",
-  },
-];
-
-export default function AdminDashboardPage() {
-  const [adminName] = useState("Alex Vance"); // Auth Context থেকে নাম ফেচ করবেন
-
+const maxSale = Math.max(
+  ...chartData.map((item) => item.sales),
+  1
+);
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       
@@ -187,28 +231,23 @@ export default function AdminDashboardPage() {
 
           {/* ভিজ্যুয়াল বার চার্ট প্রেজেন্টেশন (CSS/Tailwind) */}
           <div className="h-48 flex items-end justify-between gap-2 pt-8 pb-2 px-2 border-b border-slate-100 dark:border-white/5">
-            {[
-              { month: "Jan", height: "45%" },
-              { month: "Feb", height: "60%" },
-              { month: "Mar", height: "35%" },
-              { month: "Apr", height: "80%" },
-              { month: "May", height: "65%" },
-              { month: "Jun", height: "90%" },
-              { month: "Jul", height: "75%" },
-              { month: "Aug", height: "95%" },
-            ].map((bar, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group cursor-pointer">
-                <div 
-                  style={{ height: bar.height }} 
-                  className="w-full max-w-[28px] bg-indigo-500/20 group-hover:bg-gradient-to-t group-hover:from-pink-500 group-hover:to-indigo-600 rounded-t-lg transition-all duration-300 relative"
-                >
-                  <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-0.5 px-1.5 rounded transition duration-200 pointer-events-none">
-                    {bar.height}
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-slate-400">{bar.month}</span>
-              </div>
-            ))}
+         {chartData.map((bar, i) => (
+  <div
+    key={i}
+    className="flex-1 flex flex-col items-center justify-end gap-2 h-full"
+  >
+    <div
+      style={{
+        height: `${(bar.sales / maxSale) * 100}%`,
+      }}
+      className="w-full max-w-[28px] rounded-t-lg bg-gradient-to-t from-pink-500 to-indigo-600"
+    />
+
+    <span className="text-xs">
+      {bar.month}
+    </span>
+  </div>
+))}
           </div>
 
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-4">
@@ -312,7 +351,7 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs font-medium">
-              {RECENT_PLATFORM_ACTIVITIES.map((item) => (
+              {activities.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition">
                   <td className="py-3.5 px-5 font-mono font-bold text-pink-500 dark:text-pink-400">
                     {item.id}
