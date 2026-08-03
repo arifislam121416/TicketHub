@@ -34,7 +34,7 @@ export default function DashboardNavbar() {
         {/* Left */}
         <div className="flex items-center gap-8">
           <Link
-            href="/dashboard"
+            href="/"
             className="text-2xl font-bold text-white"
           >
             TicketHub

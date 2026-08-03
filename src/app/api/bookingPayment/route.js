@@ -19,7 +19,9 @@ export async function POST(request) {
     const price = formData.get("price");
     const title = formData.get("title");
     const ticketId = formData.get("ticketId");
-    
+    console.log("price:", formData.get("price"));
+console.log("title:", formData.get("title"));
+console.log("ticketId:", formData.get("ticketId"));
 if (!ticketId) {
   throw new Error("Ticket ID is required to process payment.");
 }

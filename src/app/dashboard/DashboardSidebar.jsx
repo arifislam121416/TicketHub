@@ -24,10 +24,15 @@ const DashboardSidebar = () => {
   const router = useRouter();
 
   const { data: session, isPending } = authClient.useSession();
-  // console.log(session,"session ashse");
+  if (isPending) {
+  return (
+    <aside className="w-42 min-h-screen bg-slate-900 flex items-center justify-center">
+      <Spinner />
+    </aside>
+  )};
   const user = session?.user;
   
-  const role = user?.role || "user"
+ const role = session?.user?.role || "user";
  
 
   const handleLogout = async () => {
@@ -122,7 +127,7 @@ const DashboardSidebar = () => {
     },
     ]
   }
-const menu = menuItems[role];
+const menu = menuItems[role] || [];
   return (
     <aside
       className={`relative min-h-screen bg-slate-900 border-r border-slate-800 text-slate-300 transition-all duration-300 flex flex-col justify-between ${

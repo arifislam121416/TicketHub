@@ -169,10 +169,25 @@ console.log(ticket,"ticket ashse");
             </div>
 
            <form action={`/api/bookingPayment`} method="POST">
-            <input type="hidden" value={ticket.price} name="price"/>
-            <input type="hidden" value={ticket.title} name="title"/>
-            <input type="hidden" value={ticket.ticketId} name="ticketId"/>
-             <Button
+            <input
+  type="hidden"
+  name="price"
+  value={ticket?.price ?? ""}
+/>
+
+<input
+  type="hidden"
+  name="title"
+  value={ticket?.title ?? ""}
+/>
+
+<input
+  type="hidden"
+  name="ticketId"
+  value={ticket?._id ?? ""}
+/>
+
+            <Button
             type="submit"
               size="lg"
               color="primary"

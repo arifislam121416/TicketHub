@@ -131,11 +131,15 @@ const TicketsApiFetch = async () => {
           <Button type="submit" className="flex items-center justify-center h-11 w-30 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-sm font-semibold text-white shadow-lg shadow-pink-500/10">
             Search
           </Button>
-          {activeQuery && (
-            <Button variant="flat" className="bg-primary border p-2 rounded text-white" onClick={handleClear}>
-              Clear
-            </Button>
-          )}
+         {activeQuery && (
+  <Button
+    variant="flat"
+    className="bg-primary border p-2 rounded text-white"
+    onClick={handleClear}
+  >
+    Clear
+  </Button>
+)}
         </div>
       </Form>
 
