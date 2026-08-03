@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { 
   Ticket, 
   Search, 
@@ -15,75 +17,80 @@ import {
   Users, 
   Clock, 
   CheckCircle2, 
-  AlertCircle 
-} from 'lucide-react';
-import Link from 'next/link';
-
-// Sample dynamic mock data (Replace with API data)
-const INITIAL_TICKETS = [
-  {
-    id: "1",
-    title: "Dhaka to Cox's Bazar Express",
-    from: "Dhaka",
-    to: "Cox's Bazar",
-    transportType: "Bus",
-    price: 1200,
-    quantity: 40,
-    booked: 28,
-    status: "Approved",
-    departureDateTime: "2026-08-10T08:00",
-    image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80"
-  },
-  {
-    id: "2",
-    title: "Sylhet Sleeper Deluxe",
-    from: "Dhaka",
-    to: "Sylhet",
-    transportType: "Train",
-    price: 850,
-    quantity: 50,
-    booked: 15,
-    status: "Pending",
-    departureDateTime: "2026-08-12T22:30",
-    image: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=600&q=80"
-  },
-  {
-    id: "3",
-    title: "Chittagong VIP Cruise",
-    from: "Dhaka",
-    to: "Chittagong",
-    transportType: "Ship",
-    price: 2500,
-    quantity: 30,
-    booked: 30,
-    status: "Approved",
-    departureDateTime: "2026-08-05T18:00",
-    image: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&q=80"
-  }
-];
+  AlertCircle,
+  X,
+  ArrowUpDown
+} from "lucide-react";
+import { TicketsApi } from "@/app/data";
 
 const VendorMyTicket = () => {
-  const [tickets, setTickets] = useState(INITIAL_TICKETS);
+  const [mounted, setMounted] = useState(false);
+  const [tickets, setTickets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("newest");
+  const [activeModalTicket, setActiveModalTicket] = useState(null);
 
-  // Filter Logic
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = 
-      ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.to.toLowerCase().includes(searchTerm.toLowerCase());
+  // Safely hydrate data on the client side
+  useEffect(() => {
+  const loadTickets = async () => {
+    try {
+      const data = await TicketsApi();
 
-    const matchesStatus = statusFilter === "All" || ticket.status === statusFilter;
+      setTickets(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setTickets([]);
+    } finally {
+      setMounted(true);
+    }
+  };
 
-    return matchesSearch && matchesStatus;
-  });
+  loadTickets();
+}, []);
 
-  // Calculate stats dynamically
-  const totalTickets = tickets.reduce((acc, curr) => acc + curr.quantity, 0);
-  const totalBooked = tickets.reduce((acc, curr) => acc + curr.booked, 0);
-  const totalRevenue = tickets.reduce((acc, curr) => acc + (curr.booked * curr.price), 0);
-  const pendingCount = tickets.filter(t => t.status === "Pending").length;
+  // Handler for dynamic deletion
+  const handleDeleteTicket = (id, title) => {
+    if (window.confirm(`Are you sure you want to delete listing: "${title}"?`)) {
+      setTickets((prev) => prev.filter((t) => t.id !== id));
+    }
+  };
+
+  // Filtered & Sorted Logic memoized for smooth performance
+  const filteredTickets = useMemo(() => {
+    return tickets
+      .filter((ticket) => {
+        const query = searchTerm.toLowerCase().trim();
+        const matchesSearch =
+          !query ||
+          ticket.title?.toLowerCase().includes(query) ||
+          ticket.from?.toLowerCase().includes(query) ||
+          ticket.to?.toLowerCase().includes(query);
+
+        const matchesStatus =
+          statusFilter === "All" || ticket.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        if (sortBy === "price-high") return (b.price || 0) - (a.price || 0);
+        if (sortBy === "price-low") return (a.price || 0) - (b.price || 0);
+        if (sortBy === "seats-left") {
+          const seatsA = (a.quantity || 0) - (a.booked || 0);
+          const seatsB = (b.quantity || 0) - (b.booked || 0);
+          return seatsA - seatsB;
+        }
+        return 0;
+      });
+  }, [tickets, searchTerm, statusFilter, sortBy]);
+
+  // Dynamic analytics summary calculations
+  const totalTickets = useMemo(() => tickets.reduce((acc, curr) => acc + (curr.quantity || 0), 0), [tickets]);
+  const totalBooked = useMemo(() => tickets.reduce((acc, curr) => acc + (curr.booked || 0), 0), [tickets]);
+  const totalRevenue = useMemo(() => tickets.reduce((acc, curr) => acc + ((curr.booked || 0) * (curr.price || 0)), 0), [tickets]);
+  const pendingCount = useMemo(() => tickets.filter((t) => t.status === "Pending").length, [tickets]);
+
+  if (!mounted) return null; // Avoid Server-Client Hydration mismatches
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen text-slate-800">
@@ -135,7 +142,7 @@ const VendorMyTicket = () => {
           </div>
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Est. Revenue</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">৳{totalRevenue.toLocaleString()}</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">${totalRevenue.toLocaleString()}</h3>
           </div>
         </div>
 
@@ -150,7 +157,7 @@ const VendorMyTicket = () => {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Filter, Search & Sort Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm mb-6 flex flex-col sm:flex-row gap-3 justify-between items-center">
         {/* Search Input */}
         <div className="relative w-full sm:w-80">
@@ -162,22 +169,48 @@ const VendorMyTicket = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
           />
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm("")} 
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
-        {/* Filter Dropdown */}
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter size={16} className="text-slate-400" />
-          <span className="text-xs font-medium text-slate-500">Status:</span>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 w-full sm:w-auto"
-          >
-            <option value="All">All Status</option>
-            <option value="Approved">Approved</option>
-            <option value="Pending">Pending</option>
-            <option value="Rejected">Rejected</option>
-          </select>
+        {/* Filter & Sort Controls */}
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* Status Dropdown */}
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-slate-400" />
+            <span className="text-xs font-medium text-slate-500">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            >
+              <option value="All">All Status</option>
+              <option value="Approved">Approved</option>
+              <option value="Pending">Pending</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2">
+            <ArrowUpDown size={16} className="text-slate-400" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            >
+              <option value="newest">Sort: Default</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="seats-left">Lowest Seats Left</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -185,8 +218,10 @@ const VendorMyTicket = () => {
       {filteredTickets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTickets.map((ticket) => {
-            const availableSeats = ticket.quantity - ticket.booked;
-            const progressPercent = Math.round((ticket.booked / ticket.quantity) * 100);
+            const availableSeats = (ticket.quantity || 0) - (ticket.booked || 0);
+            const progressPercent = ticket.quantity 
+              ? Math.round((ticket.booked / ticket.quantity) * 100) 
+              : 0;
 
             return (
               <div
@@ -196,13 +231,21 @@ const VendorMyTicket = () => {
                 <div>
                   {/* Image & Status Badge Header */}
                   <div className="relative h-44 w-full overflow-hidden bg-slate-100">
-                    <img
-                      src={ticket.image}
-                      alt={ticket.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {ticket.image ? (
+                      <Image
+                        src={ticket.image}
+                        alt={ticket.title || "Ticket Cover"}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        No Image Available
+                      </div>
+                    )}
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 shadow-sm">
-                      {ticket.transportType}
+                      {ticket.transportType || "Bus"}
                     </div>
 
                     {/* Status Badge */}
@@ -237,10 +280,12 @@ const VendorMyTicket = () => {
                     <div className="flex items-center text-slate-500 text-xs gap-2 mb-4">
                       <Calendar size={14} className="shrink-0" />
                       <span>
-                        {new Date(ticket.departureDateTime).toLocaleString('en-US', {
-                          dateStyle: 'medium',
-                          timeStyle: 'short'
-                        })}
+                        {ticket.departureDateTime
+                          ? new Date(ticket.departureDateTime).toLocaleString("en-US", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })
+                          : "Departure N/A"}
                       </span>
                     </div>
 
@@ -254,40 +299,43 @@ const VendorMyTicket = () => {
                         <div
                           className={`h-full transition-all duration-300 ${
                             progressPercent === 100 
-                              ? 'bg-rose-500' 
+                              ? "bg-rose-500" 
                               : progressPercent > 70 
-                              ? 'bg-amber-500' 
-                              : 'bg-indigo-600'
+                              ? "bg-amber-500" 
+                              : "bg-indigo-600"
                           }`}
-                          style={{ width: `${progressPercent}%` }}
+                          style={{ width: `${Math.min(progressPercent, 100)}%` }}
                         />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Footer / Price & Actions */}
+                {/* Footer / Price & Interactive Actions */}
                 <div className="px-5 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                   <div>
                     <span className="text-xs text-slate-400 block font-medium">Price/Seat</span>
-                    <span className="text-lg font-extrabold text-slate-900">৳{ticket.price}</span>
+                    <span className="text-lg font-extrabold text-slate-900">${ticket.price}</span>
                   </div>
 
                   <div className="flex items-center gap-1">
                     <button
                       title="View Details"
+                      onClick={() => setActiveModalTicket(ticket)}
                       className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                     >
                       <Eye size={18} />
                     </button>
-                    <button
+                    <Link
+                      href={`/dashboard/vendor/vendorAddTicket?edit=${ticket.id}`}
                       title="Edit Ticket"
                       className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                     >
                       <Edit3 size={18} />
-                    </button>
+                    </Link>
                     <button
                       title="Delete Ticket"
+                      onClick={() => handleDeleteTicket(ticket.id, ticket.title)}
                       className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                     >
                       <Trash2 size={18} />
@@ -300,7 +348,7 @@ const VendorMyTicket = () => {
         </div>
       ) : (
         /* Empty State */
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center max-w-md mx-auto my-8">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center max-w-md mx-auto my-8 shadow-sm">
           <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
             <Ticket size={32} />
           </div>
@@ -313,10 +361,48 @@ const VendorMyTicket = () => {
               setSearchTerm("");
               setStatusFilter("All");
             }}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg transition-colors"
           >
             Clear Filters
           </button>
+        </div>
+      )}
+
+      {/* Quick View Details Modal */}
+      {activeModalTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setActiveModalTicket(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">{activeModalTicket.title}</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Listing ID: <span className="font-mono text-xs">{activeModalTicket.id}</span>
+            </p>
+            <div className="space-y-2 text-sm border-t pt-4 border-slate-100">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Route:</span>
+                <span className="font-medium text-slate-800">{activeModalTicket.from} to {activeModalTicket.to}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Price per Seat:</span>
+                <span className="font-bold text-slate-900">${activeModalTicket.price}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Available Inventory:</span>
+                <span className="font-medium text-slate-800">{activeModalTicket.quantity - activeModalTicket.booked} seats</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveModalTicket(null)}
+              className="w-full mt-6 py-2.5 bg-slate-900 text-white font-medium rounded-xl text-sm hover:bg-slate-800 transition-colors"
+            >
+              Close Preview
+            </button>
+          </div>
         </div>
       )}
     </div>

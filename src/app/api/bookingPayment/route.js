@@ -19,12 +19,14 @@ export async function POST(request) {
     const price = formData.get("price");
     const title = formData.get("title");
     const ticketId = formData.get("ticketId");
+    
+if (!ticketId) {
+  throw new Error("Ticket ID is required to process payment.");
+}
 const user = userSession?.user
 const userId = user?.id
 
-    const PRICE_ID = "price_1TyQH2R09D6rP3vuIvoF3AW7"
-
-    // Create Checkout Sessions from body params.
+   
   const session = await stripe.checkout.sessions.create({
     customer_email: user?.email,
   line_items: [
@@ -39,20 +41,16 @@ unit_amount: Number(price) * 100
       quantity: 1,
     },
   ],
-  metadata:{
-    ticketId,
-PRICE_ID,
-title,
-price,
-user,
-  },
   mode: 'payment',
+  metadata: {
+        ticketId: String(ticketId),
+        title: String(title),
+        price: String(price),
+        userId: String(userId) // ✅ All values must be strings
+      },
   success_url: `${origin}/paymentSuccess?session_id={CHECKOUT_SESSION_ID}`,
   
-  // Custom tracking or identifying-এর জন্য metadata ব্যবহার করুন
-  metadata: {
-    integration_identifier: "tickethub-checkout",
-  },
+ 
 });
     return NextResponse.redirect(session.url, 303)
   } catch (err) {

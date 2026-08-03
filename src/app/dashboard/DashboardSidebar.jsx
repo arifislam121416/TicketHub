@@ -11,10 +11,6 @@ import {
 } from "@heroui/react";
 import {
   LayoutCellsLarge,
-  Persons,
-  ShoppingBag,
-  ChartColumn,
-  Gear,
   CircleQuestion,
   ArrowRightFromSquare,
   ChevronLeft,
@@ -219,7 +215,7 @@ const menu = menuItems[role];
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar
-                src={session.user.image}
+                src={session.user.image || "/default-avatar.png"}
                 name={session.user.name}
                 size="sm"
                 color="primary"
@@ -236,12 +232,12 @@ const menu = menuItems[role];
                   </h4>
 
                   <p className="truncate text-xs text-slate-500">
-                    {session.user.email}
+                    {session.user.email }
                   </p>
 
                   {session.user.role && (
                     <span className="mt-1 inline-block rounded-full bg-indigo-500/20 px-2 py-0.5 text-[10px] uppercase text-indigo-300">
-                      {session.user.role}
+                      {session.user.role }
                     </span>
                   )}
                 </div>

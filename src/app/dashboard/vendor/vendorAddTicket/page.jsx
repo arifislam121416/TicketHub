@@ -87,35 +87,50 @@ const VendorAddTicketPage = () => {
 
 const imgData = await imgRes.json();
 
-            if (imgRes.data.success) {
-                const imageUrl = imgRes.data.data.display_url;
+           if (imgData.success) {
+               const imageUrl = imgData.data.display_url;
 
-                const ticketData = {
-                    title: data.title,
-                    from: data.from,
-                    to: data.to,
-                    transportType: data.transportType,
-                    price: Number(data.price),
-                    quantity: Number(data.quantity),
-                    departureDateTime: data.departureDateTime,
-                    perks: data.perks || [],
-                    image: imageUrl,
-                    vendorName: user?.name,
-                    vendorEmail: user?.email,
-                    vendorImage: user?.image || "",
-                    status: "Pending",
-                    booked: 0,
-                    available: Number(data.quantity),
-                    createdAt: new Date().toISOString()
-                };
+               const ticketData = {
+  title: data.title,
+  from: data.from,
+  to: data.to,
+  transportType: data.transportType,
+  price: Number(data.price),
+  quantity: Number(data.quantity),
+  departureDateTime: data.departureDateTime,
+  perks: data.perks || [],
+  image: imageUrl,
 
-               await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(ticketData),
-});
+  vendorName: user?.name,
+  vendorEmail: user?.email,
+  vendorImage: user?.image || "",
+
+  status: "Pending",
+  booked: 0,
+  available: Number(data.quantity),
+  createdAt: new Date(),
+};
+
+const response = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/tickets`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(ticketData),
+  }
+);
+
+const result = await response.json();
+
+if (response.ok) {
+  toast.success("Ticket Added Successfully");
+  reset();
+  setPreview(null);
+} else {
+  toast.error(result.message);
+}
                 
                 toast.success("Ticket added successfully! Waiting for Admin Approval.");
                 reset();

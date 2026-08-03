@@ -23,7 +23,8 @@ export const TicketsApi = async (token) => {
   console.log("API Data:", data);
 
   return data.tickets ?? data;
-};                                                                                                                                                                                                                              
+};   
+                                                                                                                                                                                                                           
 export const TicketsApiDetails = async (id, token) => {
   const url = `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`;
 

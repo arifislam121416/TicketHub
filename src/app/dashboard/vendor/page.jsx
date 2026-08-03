@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { 
   FaTicketAlt, 
@@ -15,46 +15,47 @@ import {
   FaChartLine,
   FaRegSmile
 } from "react-icons/fa";
+import { authClient } from "@/app/lib/auth-client";
 
 // ডাইনামিক টেস্ট ডেটা (আপনার API-এর সাথে কানেক্ট করবেন)
-const SUMMARY_STATS = [
-  {
-    title: "Total Revenue",
-    value: "$12,450.00",
-    change: "+14.2%",
-    isPositive: true,
-    icon: FaMoneyBillWave,
-    color: "from-emerald-500 to-teal-600",
-    shadow: "shadow-emerald-500/10",
-  },
-  {
-    title: "Total Tickets Sold",
-    value: "1,248",
-    change: "+8.5%",
-    isPositive: true,
-    icon: FaTicketAlt,
-    color: "from-pink-500 to-rose-600",
-    shadow: "shadow-pink-500/10",
-  },
-  {
-    title: "Pending Requests",
-    value: "18",
-    change: "-2.1%",
-    isPositive: false,
-    icon: FaClock,
-    color: "from-amber-500 to-orange-600",
-    shadow: "shadow-amber-500/10",
-  },
-  {
-    title: "Active Events",
-    value: "6",
-    change: "+1 new",
-    isPositive: true,
-    icon: FaCalendarCheck,
-    color: "from-indigo-500 to-purple-600",
-    shadow: "shadow-indigo-500/10",
-  },
-];
+// const SUMMARY_STATS = [
+//   {
+//     title: "Total Revenue",
+//     value: "$12,450.00",
+//     change: "+14.2%",
+//     isPositive: true,
+//     icon: FaMoneyBillWave,
+//     color: "from-emerald-500 to-teal-600",
+//     shadow: "shadow-emerald-500/10",
+//   },
+//   {
+//     title: "Total Tickets Sold",
+//     value: "1,248",
+//     change: "+8.5%",
+//     isPositive: true,
+//     icon: FaTicketAlt,
+//     color: "from-pink-500 to-rose-600",
+//     shadow: "shadow-pink-500/10",
+//   },
+//   {
+//     title: "Pending Requests",
+//     value: "18",
+//     change: "-2.1%",
+//     isPositive: false,
+//     icon: FaClock,
+//     color: "from-amber-500 to-orange-600",
+//     shadow: "shadow-amber-500/10",
+//   },
+//   {
+//     title: "Active Events",
+//     value: "6",
+//     change: "+1 new",
+//     isPositive: true,
+//     icon: FaCalendarCheck,
+//     color: "from-indigo-500 to-purple-600",
+//     shadow: "shadow-indigo-500/10",
+//   },
+// ];
 
 const RECENT_BOOKINGS = [
   {
@@ -96,8 +97,78 @@ const RECENT_BOOKINGS = [
 ];
 
 export default function VendorDashboardPage() {
-  const [userName] = useState("John Doe"); // Auth context থেকে নাম বসাবেন
+const { data: session } = authClient.useSession();
 
+const [dashboard, setDashboard] = useState(null);
+
+const userName = session?.user?.name || "Vendor";
+
+useEffect(() => {
+  if (!session?.user?.email) return;
+
+  const loadDashboard = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/vendor/dashboard?email=${session.user.email}`
+      );
+ console.log("Fetching:", res);
+      const data = await res.json();
+
+      setDashboard(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  loadDashboard();
+}, [session]);
+
+const SUMMARY_STATS = useMemo(() => [
+  {
+    title: "Total Revenue",
+    value: `${dashboard?.stats?.totalRevenue || 0}`,
+    change: "",
+    isPositive: true,
+    icon: FaMoneyBillWave,
+    color: "from-emerald-500 to-teal-600",
+    shadow: "shadow-emerald-500/10",
+  },
+  {
+    title: "Total Tickets Sold",
+    value: dashboard?.stats?.ticketsSold || 0,
+    change: "",
+    isPositive: true,
+    icon: FaTicketAlt,
+    color: "from-pink-500 to-rose-600",
+    shadow: "shadow-pink-500/10",
+  },
+  {
+    title: "Pending Requests",
+    value: dashboard?.stats?.pendingBookings || 0,
+    change: "",
+    isPositive: true,
+    icon: FaClock,
+    color: "from-amber-500 to-orange-600",
+    shadow: "shadow-amber-500/10",
+  },
+  {
+    title: "Active Events",
+    value: dashboard?.stats?.activeTickets || 0,
+    change: "",
+    isPositive: true,
+    icon: FaCalendarCheck,
+    color: "from-indigo-500 to-purple-600",
+    shadow: "shadow-indigo-500/10",
+  },
+], [dashboard]);
+
+if (!dashboard) {
+  return (
+    <div className="flex justify-center items-center h-screen">
+      Loading Dashboard...
+    </div>
+  );
+}
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       
@@ -310,7 +381,7 @@ export default function VendorDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs font-medium">
-              {RECENT_BOOKINGS.map((booking) => (
+              {dashboard?.recentBookings?.map((booking) => (
                 <tr key={booking.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition">
                   <td className="py-3.5 px-5 font-mono font-bold text-pink-500 dark:text-pink-400">
                     {booking.id}

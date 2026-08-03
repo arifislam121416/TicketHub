@@ -22,10 +22,8 @@ export async function POST() {
   mode: 'subscription',
   success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
   
-  // Custom tracking or identifying-এর জন্য metadata ব্যবহার করুন
-  metadata: {
-    integration_identifier: "tickethub-checkout",
-  },
+
+
 });
     return NextResponse.redirect(session.url, 303)
   } catch (err) {
