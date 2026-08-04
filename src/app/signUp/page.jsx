@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import {useRouter } from "next/navigation";
 import { 
   Card,  
   Input, 
@@ -26,7 +26,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false); // FIXED: Added missing state
   const [authError, setAuthError] = useState("");
-  const pathname = usePathname();
+ 
 
   const {
     register,
@@ -49,7 +49,7 @@ export default function SignUpPage() {
     setLoading(true);
     setAuthError("");
     try {
-      const { data: res, error } = await authClient.signUp.email({
+      const { data: res , error } = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         name: data.name,
@@ -82,7 +82,7 @@ export default function SignUpPage() {
       setAuthError("");
 
       const result = await uploadImage(file);
-
+console.log(result,"image ashse");
       if (result.success) {
         setValue("image", result.imageUrl, {
           shouldValidate: true,

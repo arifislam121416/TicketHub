@@ -1,19 +1,37 @@
 // app/dashboard/admin/profile/page.jsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Image from "next/image";
 import { FaUserShield, FaEnvelope, FaKey, FaChartLine, FaCheckCircle } from "react-icons/fa";
+import { authClient } from "@/app/lib/auth-client";
 
 export default function AdminProfilePage() {
-  const [admin] = useState({
-    name: "Alex Vance",
-    email: "admin@tickethub.com",
-    role: "Super Admin",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
-    totalActions: 412,
-    joinedDate: "January 2025",
-  });
+const { data: session } = authClient.useSession();
+
+const [admin, setAdmin] = useState(null);
+useEffect(() => {
+  if (!session?.user?.email) return;
+
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/profile/${session.user.email}`)
+    .then(async (res) => {
+      if (!res.ok) {
+        throw new Error("Profile not found");
+      }
+
+      return res.json();
+    })
+    .then(setAdmin)
+    .catch(console.error);
+}, [session]);
+
+if (!admin) {
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>
+  );
+}
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
@@ -25,7 +43,10 @@ export default function AdminProfilePage() {
         {/* Left Profile Card */}
         <div className="p-6 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 shadow-sm text-center flex flex-col items-center">
           <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-pink-500/20 mb-4">
-            <Image src={admin.avatar} alt={admin.name} fill className="object-cover" />
+            <Image  src={admin.image}
+    alt={admin.name}
+    fill
+    className="object-cover" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">{admin.name}</h2>
           <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-pink-500/10 text-pink-500 text-xs font-bold border border-pink-500/20">
