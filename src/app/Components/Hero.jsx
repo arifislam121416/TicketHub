@@ -128,7 +128,7 @@ const Hero = () => {
                 </Link>
               ) : (
                 /* User is Guest */
-                <Link href="/login" className="w-full sm:w-auto">
+                <Link href="/signIn" className="w-full sm:w-auto">
                   <Button
                     variant="bordered"
                     className="border-white/10 hover:bg-white/5 hover:border-white/20 text-slate-200 font-semibold h-14 px-8 text-md border-2 w-full backdrop-blur-sm"

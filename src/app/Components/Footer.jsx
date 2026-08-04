@@ -46,8 +46,8 @@ export default function Footer() {
           <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">For Vendor</h3>
           <ul className="space-y-2 text-slate-400 text-sm">
             <li><Link href="/register?role=organizer" className="hover:text-white transition-colors">Create Vendeor</Link></li>
-            <li><Link href="/login" className="hover:text-white transition-colors">Host an Event</Link></li>
-            <li><Link href="/login" className="hover:text-white transition-colors">Premium Packages</Link></li>
+            <li><Link href="/signIn" className="hover:text-white transition-colors">Host an Event</Link></li>
+            <li><Link href="/signIn" className="hover:text-white transition-colors">Premium Packages</Link></li>
             <li><a href="#" className="hover:text-white transition-colors">Pricing & Fees</a></li>
           </ul>
         </div>

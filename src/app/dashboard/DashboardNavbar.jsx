@@ -23,7 +23,7 @@ export default function DashboardNavbar() {
   const handleLogout = async () => {
     await authClient.signOut({
       fetchOptions: {
-        onSuccess: () => router.push("/login"),
+        onSuccess: () => router.push("/signIn"),
       },
     });
   };

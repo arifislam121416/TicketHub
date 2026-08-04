@@ -13,7 +13,7 @@ console.log(session);
 
  if(!session){
    return NextResponse.redirect(
-    new URL("/login",request.url)
+    new URL("/signIn",request.url)
    );
  }
 
