@@ -1,95 +1,280 @@
-// app/dashboard/admin/manage-tickets/page.jsx
 "use client";
 
-import React, { useState } from "react";
-import { FaTicketAlt, FaCheck, FaTimes, FaSpinner } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import {
+  FaTicketAlt,
+  FaCheck,
+  FaTimes,
+  FaSpinner,
+  FaBus,
+  FaPlane,
+  FaTrain,
+  FaShip,
+} from "react-icons/fa";
+import toast from "react-hot-toast";
+import { TicketsApi } from "@/app/data";
 
-const DUMMY_TICKETS = [
-  { id: "TK-101", title: "Cyber Security Conference 2026", vendor: "Tech Corp", price: "$120", status: "Pending" },
-  { id: "TK-102", title: "Rock Symphony Night", vendor: "Live Events Ltd", price: "$85", status: "Approved" },
-  { id: "TK-103", title: "Startup Expo & Pitching", vendor: "Innovate BD", price: "$50", status: "Rejected" },
-];
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ManageTicketsPage() {
-  const [tickets, setTickets] = useState(DUMMY_TICKETS);
-  const [loadingId, setLoadingId] = useState(null);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingId, setLoadingId] = useState("");
 
-  const handleStatusChange = (id, newStatus) => {
-    setLoadingId(id);
-    setTimeout(() => {
-      setTickets((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t))
-      );
-      setLoadingId(null);
-    }, 500);
+  useEffect(() => {
+    TicketsApi();
+  }, []);
+
+  const getTickets = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API}/tickets`);
+      const data = await res.json();
+
+      setTickets(data?.tickets || data);
+    } catch (err) {
+      toast.error("Failed to load tickets");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const updateStatus = async (id, status) => {
+    try {
+      setLoadingId(id);
+
+      const res = await fetch(`${API}/tickets/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          verificationStatus: status,
+        }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      toast.success(`Ticket ${status}`);
+
+      setTickets((prev) =>
+        prev.map((ticket) =>
+          ticket._id === id
+            ? {
+                ...ticket,
+                verificationStatus: status,
+              }
+            : ticket
+        )
+      );
+    } catch {
+      toast.error("Update failed");
+    } finally {
+      setLoadingId("");
+    }
+  };
+
+  const transportIcon = (type) => {
+    switch (type) {
+      case "Bus":
+        return <FaBus />;
+      case "Flight":
+        return <FaPlane />;
+      case "Train":
+        return <FaTrain />;
+      case "Launch":
+        return <FaShip />;
+      default:
+        return <FaTicketAlt />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-[70vh] flex items-center justify-center">
+        <FaSpinner className="animate-spin text-4xl text-pink-500" />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-          <FaTicketAlt className="text-pink-500" /> Manage Tickets
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review and approve vendor ticket listings.</p>
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+
+      <div className="flex justify-between items-center">
+
+        <div>
+
+          <h2 className="text-3xl font-bold flex gap-3 items-center">
+            <FaTicketAlt className="text-pink-500" />
+            Manage Tickets
+          </h2>
+
+          <p className="text-gray-500">
+            Total Tickets : {tickets.length}
+          </p>
+
+        </div>
+
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 shadow-sm">
-        <table className="w-full text-left border-collapse text-xs font-medium">
+      <div className="overflow-auto rounded-2xl border bg-white dark:bg-slate-900">
+
+        <table className="table">
+
           <thead>
-            <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/60 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              <th className="py-4 px-5">Ticket Info</th>
-              <th className="py-4 px-5">Vendor Name</th>
-              <th className="py-4 px-5">Price</th>
-              <th className="py-4 px-5">Status</th>
-              <th className="py-4 px-5 text-right">Actions</th>
+
+            <tr>
+
+              <th>Ticket</th>
+              <th>Vendor</th>
+              <th>Route</th>
+              <th>Transport</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th></th>
+
             </tr>
+
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+
+          <tbody>
+
             {tickets.map((ticket) => (
-              <tr key={ticket.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
-                <td className="py-4 px-5">
-                  <span className="font-mono font-bold text-pink-500">{ticket.id}</span>
-                  <p className="font-bold text-slate-900 dark:text-white mt-0.5">{ticket.title}</p>
+              <tr key={ticket._id}>
+
+                <td>
+
+                  <div className="flex gap-4 items-center">
+
+                    <img
+                      src={ticket.image}
+                      className="w-20 h-16 rounded-xl object-cover"
+                    />
+
+                    <div>
+
+                      <h3 className="font-bold">
+                        {ticket.title}
+                      </h3>
+
+                      <p className="text-xs text-gray-500">
+                        {new Date(
+                          ticket.departureDateTime
+                        ).toLocaleString()}
+                      </p>
+
+                    </div>
+
+                  </div>
+
                 </td>
-                <td className="py-4 px-5 text-slate-600 dark:text-slate-300">{ticket.vendor}</td>
-                <td className="py-4 px-5 font-bold text-slate-900 dark:text-white">{ticket.price}</td>
-                <td className="py-4 px-5">
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                    ticket.status === "Approved" ? "bg-emerald-500/10 text-emerald-500" :
-                    ticket.status === "Rejected" ? "bg-rose-500/10 text-rose-500" : "bg-amber-500/10 text-amber-500"
-                  }`}>
-                    {ticket.status}
+
+                <td>
+
+                  <h3>{ticket.vendorName}</h3>
+
+                  <p className="text-xs text-gray-400">
+                    {ticket.vendorEmail}
+                  </p>
+
+                </td>
+
+                <td>
+
+                  {ticket.from}
+
+                  <br />
+
+                  ↓
+
+                  <br />
+
+                  {ticket.to}
+
+                </td>
+
+                <td>
+
+                  <div className="flex items-center gap-2">
+
+                    {transportIcon(ticket.transportType)}
+
+                    {ticket.transportType}
+
+                  </div>
+
+                </td>
+
+                <td>
+
+                  <span className="font-bold">
+                    ${ticket.price}
                   </span>
+
                 </td>
-                <td className="py-4 px-5 text-right">
-                  {loadingId === ticket.id ? (
-                    <FaSpinner className="animate-spin text-pink-500 inline-block" />
+
+                <td>
+
+                  <span
+                    className={`badge ${
+                      ticket.verificationStatus === "Approved"
+                        ? "badge-success"
+                        : ticket.verificationStatus === "Rejected"
+                        ? "badge-error"
+                        : "badge-warning"
+                    }`}
+                  >
+                    {ticket.verificationStatus}
+                  </span>
+
+                </td>
+
+                <td>
+
+                  {loadingId === ticket._id ? (
+                    <FaSpinner className="animate-spin text-pink-500" />
                   ) : (
-                    <div className="flex justify-end gap-2">
-                      {ticket.status !== "Approved" && (
+                    <div className="flex gap-2">
+
+                      {ticket.verificationStatus !==
+                        "Approved" && (
                         <button
-                          onClick={() => handleStatusChange(ticket.id, "Approved")}
-                          className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition cursor-pointer flex items-center gap-1"
+                          onClick={() =>
+                            updateStatus(ticket._id, "Approved")
+                          }
+                          className="btn btn-success btn-sm"
                         >
-                          <FaCheck /> Approve
+                          <FaCheck />
                         </button>
                       )}
-                      {ticket.status !== "Rejected" && (
+
+                      {ticket.verificationStatus !==
+                        "Rejected" && (
                         <button
-                          onClick={() => handleStatusChange(ticket.id, "Rejected")}
-                          className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 font-semibold rounded-xl transition cursor-pointer flex items-center gap-1"
+                          onClick={() =>
+                            updateStatus(ticket._id, "Rejected")
+                          }
+                          className="btn btn-error btn-sm"
                         >
-                          <FaTimes /> Reject
+                          <FaTimes />
                         </button>
                       )}
+
                     </div>
                   )}
+
                 </td>
+
               </tr>
             ))}
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
   );
 }

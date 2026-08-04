@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   FaUsers,
@@ -16,48 +16,15 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
-// টেস্ট/ডেমো ডেটা (আপনার Backend / TanStack Query / Redux API এর সাথে কানেক্ট করবেন)
-const INITIAL_USERS = [
-  {
-    _id: "usr_101",
-    name: "Alex Vance",
-    email: "alex.vance@example.com",
-    role: "Admin",
-    isFraud: false,
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    createdAt: "2025-01-15",
-  },
-  {
-    _id: "usr_102",
-    name: "Grand Arena Events",
-    email: "contact@grandarena.com",
-    role: "Vendor",
-    isFraud: false,
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    createdAt: "2025-02-10",
-  },
-  {
-    _id: "usr_103",
-    name: "Farhana Yasmin",
-    email: "farhana.y@example.com",
-    role: "User",
-    isFraud: false,
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-    createdAt: "2025-03-01",
-  },
-  {
-    _id: "usr_104",
-    name: "Shady Ticket Agency",
-    email: "support@shadytickets.com",
-    role: "Vendor",
-    isFraud: true, // ইতিমধ্যে Fraud মার্কড
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-    createdAt: "2025-02-18",
-  },
-];
+const API = process.env.NEXT_PUBLIC_API_URL;
+if (!API) {
+   console.error("API URL Missing");
+}
 
 export default function AdminManageUsersPage() {
-  const [users, setUsers] = useState(INITIAL_USERS);
+ const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [loadingId, setLoadingId] = useState(null);
@@ -66,43 +33,114 @@ export default function AdminManageUsersPage() {
   const [selectedUserForFraud, setSelectedUserForFraud] = useState(null);
   const [alertMessage, setAlertMessage] = useState(null);
 
+  const fetchUsers = async () => {
+  try {
+    setLoading(true);
+
+  const res = await fetch(`${API}/users`);
+
+if (!res.ok) {
+  throw new Error("Failed to fetch users");
+}
+
+const data = await res.json();
+
+setUsers(data);
+
+  } catch (err) {
+    console.log(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchUsers ();
+}, []);
   // 🔄 ১. ইউজারের রোল পরিবর্তন হ্যান্ডলার (Make Admin / Make Vendor)
-  const handleRoleChange = async (userId, newRole) => {
+ const handleRoleChange = async (userId, role) => {
+
+  try {
+
     setLoadingId(userId);
 
-    // API Call Mock TimeOut
-    setTimeout(() => {
-      setUsers((prev) =>
-        prev.map((user) =>
-          user._id === userId ? { ...user, role: newRole } : user
-        )
-      );
-      setLoadingId(null);
-      showAlert(`User role successfully updated to "${newRole}"`, "success");
-    }, 600);
-  };
+    const res = await fetch(
+      `${API}/users/${userId}/role`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error();
+
+    setUsers((prev) =>
+      prev.map((user) =>
+        user._id === userId
+          ? { ...user, role }
+          : user
+      )
+    );
+
+    showAlert("Role Updated", "success");
+
+  } finally {
+
+    setLoadingId(null);
+
+  }
+};
 
   // ⚠️ ২. ভেন্ডরকে Fraud হিসেবে মার্ক করার প্রসেস
-  const confirmMarkAsFraud = async () => {
-    if (!selectedUserForFraud) return;
+ const confirmMarkAsFraud = async () => {
 
-    const userId = selectedUserForFraud._id;
-    setLoadingId(userId);
-    setSelectedUserForFraud(null); // মোডাল ক্লোজ
+  if (!selectedUserForFraud) return;
 
-    setTimeout(() => {
-      setUsers((prev) =>
-        prev.map((user) =>
-          user._id === userId ? { ...user, isFraud: true } : user
-        )
-      );
-      setLoadingId(null);
-      showAlert(
-        `Vendor "${selectedUserForFraud.name}" marked as FRAUD. All active tickets are now hidden!`,
-        "error"
-      );
-    }, 700);
-  };
+  try {
+
+    setLoadingId(selectedUserForFraud._id);
+
+    const res = await fetch(
+  `${API}/users/${selectedUserForFraud._id}/fraud`,
+  {
+    method: "PATCH",
+  }
+);
+
+if (!res.ok) {
+  throw new Error("Failed");
+}
+
+    setUsers((prev) =>
+      prev.map((user) =>
+        user._id === selectedUserForFraud._id
+          ? {
+              ...user,
+              isFraud: true,
+            }
+          : user
+      )
+    );
+
+    showAlert(
+      "Vendor marked as Fraud",
+      "error"
+    );
+
+  } finally {
+
+    setLoadingId(null);
+
+    setSelectedUserForFraud(null);
+
+  }
+
+};
 
   // টোস্ট নোটিফিকেশন প্রদর্শন
   const showAlert = (msg, type) => {
@@ -112,9 +150,13 @@ export default function AdminManageUsersPage() {
 
   // 🔍 সার্চ ও ফিল্টার লজিক
   const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+   const matchesSearch =
+  (user.name || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+  (user.email || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase());
 
     const matchesRole =
       roleFilter === "All"
@@ -125,7 +167,13 @@ export default function AdminManageUsersPage() {
 
     return matchesSearch && matchesRole;
   });
-
+if (loading) {
+  return (
+    <div className="h-[70vh] flex justify-center items-center">
+      <FaSpinner className="animate-spin text-4xl text-pink-500"/>
+    </div>
+  );
+}
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       
@@ -226,8 +274,8 @@ export default function AdminManageUsersPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-white/10 shrink-0">
                         <Image
-                          src={user.image}
-                          alt={user.name}
+                         src={user.image || "/avatar.png"}
+                          alt={user.name || "User"}
                           fill
                           className="object-cover"
                         />
